@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chick Jump Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      display: block;
+      background-size: cover;
+      z-index: 1;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      z-index: 2;
+    }
+    #centerText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      font-weight: bold;
+      color: black;
+      z-index: 1;
+      pointer-events: none;
+    }
+    #startButton {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <div id="centerText">Chick Jump</div>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <button id="startButton" onclick="loadImagesAndStartGame()">Start Game</button>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let dino = new Image();
+    let obstacle = new Image();
+    let bgImage = new Image();
+
+    // URLs to permanent image assets
+    dino.src = 'https://raw.githubusercontent.com/Arpit221242/Chick-Jump/main/c.png';
+    obstacle.src = 'https://raw.githubusercontent.com/Arpit221242/Chick-Jump/main/s%20-%20Copy.png';
+    bgImage.src = 'https://raw.githubusercontent.com/Arpit221242/Chick-Jump/main/Free-Mountain-Backgrounds-Pixel-Art3.png';
+
+    let dinoX = 50, dinoY = 300, dinoVY = 0, isJumping = false;
+    const gravity = 0.8;
+
+    let obstacleX = 800;
+    let score = 0;
+    let speed = 2.5;
+    let running = false;
+    let scoreInterval;
+
+    function loadImagesAndStartGame() {
+      let loadedImages = 0;
+      const totalImages = 3;
+
+      const checkAllLoaded = () => {
+        loadedImages++;
+        if (loadedImages === totalImages) {
+          startGame();
+        }
+      };
+
+      dino.onload = checkAllLoaded;
+      obstacle.onload = checkAllLoaded;
+      bgImage.onload = checkAllLoaded;
+
+      // Re-assign sources to trigger loading
+      dino.src = dino.src;
+      obstacle.src = obstacle.src;
+      bgImage.src = bgImage.src;
+    }
+
+    function startGame() {
+      obstacleX = 800;
+      dinoY = 300;
+      dinoVY = 0;
+      score = 0;
+      speed = 2.5;
+      running = true;
+      document.getElementById('score').textContent = 'Score: 0';
+      clearInterval(scoreInterval);
+      scoreInterval = setInterval(() => {
+        if (running) {
+          score++;
+          speed += 0.01;
+          document.getElementById('score').textContent = 'Score: ' + score;
+        }
+      }, 100);
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop() {
+      if (!running) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(dino, dinoX, dinoY, 50, 50);
+      ctx.drawImage(obstacle, obstacleX, 300, 50, 50);
+
+      if (isJumping) {
+        dinoVY -= gravity;
+        dinoY -= dinoVY;
+        if (dinoY >= 300) {
+          dinoY = 300;
+          isJumping = false;
+          dinoVY = 0;
+        }
+      }
+
+      obstacleX -= speed;
+      if (obstacleX < -50) obstacleX = 800;
+
+      if (obstacleX < dinoX + 50 && obstacleX + 50 > dinoX && dinoY + 50 > 300) {
+        running = false;
+        clearInterval(scoreInterval);
+        alert('Game Over! Final Score: ' + score);
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !isJumping && running) {
+        isJumping = true;
+        dinoVY = 15;
+      }
+    });
+  </script>
+</body>
+</html>
